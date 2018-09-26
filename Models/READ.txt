@@ -1,0 +1,3 @@
+- model_test.sav is a Scikit-Learn predictor (GradientBoosting) that predicts the winner of a game given 180 features (10 champs * 18 stats).
+
+-normaliz.sav is a Scaler used on data (on the 180 features) before predicting new samples with the predictor
