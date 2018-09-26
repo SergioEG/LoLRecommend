@@ -4,18 +4,30 @@ Created on Thu Feb  1 16:51:34 2018
 
 @author: Sergio
 """
+##########################################################################
+###     Extract matches and classify them in ligues
+###     The matches are ranked and a period time must be selected
+##########################################################################
 
-# Obtener partidas y clasificarlas según la liga en la que se juegue
-
-import requests # para hacer peticiones http
-import queue # cola para acc_Ids
-import bisect # ordenar cola para optimizar
+import requests # for http requests
+import queue # queue for acc_Ids
+import bisect # ordered queue to optimize
 import random
 
-key1 = "RGAPI-0329819f-e5c4-4d89-b3b7-2221976d6e3b" # spelldown
-key2 = "RGAPI-7d84f0cd-55ad-4f03-948f-bc25b71c3a1e" #sean beathurne
-key3 = "RGAPI-10251a3a-aef5-4653-a027-7e419bd65695" # garden
-key4 = "RGAPI-e6b20e34-1321-4a2a-9f1d-2e853c271f02" # daion
+############ VARIABLES TO FIT #########################
+
+# INTRODUCE AS MANY API KEYS AS WANTED (properly changing the code below)
+key1 = #####
+key2 = #####
+
+seed_accId = ##### SEED ACCOUNT (FOR STARTING THE EXTRACTION)
+
+# Start and end time (in Epoch miliseconds) of the period in which matches are played
+starttime = ##### (string)
+endtime = ##### (string)
+
+######################################################
+
 key = key1;
 n_key = 1;
 
@@ -24,13 +36,7 @@ def change_key(key, n_key):
         key = key2
         n_key = 2
     elif n_key == 2:
-        key = key3
-        n_key = 3
-    elif n_key == 3:
         key = key1
-        n_key = 4
-    elif n_key == 4:
-        key = key4
         n_key = 1
     return key, n_key
 
@@ -43,14 +49,14 @@ def calculate_ligue(ligues): # For calculating the average ligue of the game
     else:
         return sum(pond_list)/len(pond_list)
 
-seed_accId = 226447238 # 
-max_games_per_player = 20 # max num of games per played saved
+
+max_games_per_player = 20 # max num of games saved per player
 
 queue_account_Ids = queue.Queue(maxsize = 3000)
 queue_account_Ids.put(seed_accId)
 
 try:
-    with open('games_ID.txt','r') as file:
+    with open('Data/games_ID.txt','r') as file:
         games_history = file.readlines()
     
     if len(games_history) > 0:
@@ -62,42 +68,42 @@ except:
     games_history = []
 
 try:
-    with open('bronze.txt','r') as f:
+    with open('Data/bronze.txt','r') as f:
         cur = f.readlines()
         number_games_bronze = len(cur)
 except:
     number_games_bronze = 0
 
 try:
-    with open('silver.txt','r') as f:
+    with open('Data/silver.txt','r') as f:
         cur = f.readlines()
         number_games_silver = len(cur)
 except:
     number_games_silver = 0
 
 try:
-    with open('gold.txt','r') as f:
+    with open('Data/gold.txt','r') as f:
         cur = f.readlines()
         number_games_gold = len(cur)
 except:
     number_games_gold = 0
 
 try:
-    with open('platinum.txt','r') as f:
+    with open('Data/platinum.txt','r') as f:
         cur = f.readlines()
         number_games_platinum = len(cur)
 except:
     number_games_platinum = 0
 
 try:
-    with open('diamond.txt','r') as f:
+    with open('Data/diamond.txt','r') as f:
         cur = f.readlines()
         number_games_diamond = len(cur)
 except:
     number_games_diamond = 0
     
 try:
-    with open('challenger.txt','r') as f:
+    with open('Data/challenger.txt','r') as f:
         cur = f.readlines()
         number_games_challenger = len(cur)
 except:
@@ -126,7 +132,7 @@ while True:
                 all_rep = 0
     
         acc_Id = queue_account_Ids.get()
-        url = "https://euw1.api.riotgames.com/lol/match/v3/matchlists/by-account/"+str(acc_Id)+"?api_key="+key+"&queue=420&endTime=1519252257000&beginTime=1518654700000"
+        url = "https://euw1.api.riotgames.com/lol/match/v3/matchlists/by-account/"+str(acc_Id)+"?api_key="+key+"&queue=420&endTime="+endtime+"&beginTime=+"begintime
         req = requests.get(url)
         player = req.json()
         if 'status' in player:
@@ -201,7 +207,7 @@ while True:
                         game_list[5+p] = game_list_unordered[j]
                     
             
-            with open("games_ID.txt", "a") as myfile:
+            with open("Data/games_ID.txt", "a") as myfile:
                 myfile.write("\n"+str(game_Id))  
             
             if ligue == -1: # too many unrankeds
@@ -212,7 +218,7 @@ while True:
                 
             if ligue < 4: # Bronze
                 
-                with open("bronze.txt", "a") as myfile:
+                with open("Data/bronze.txt", "a") as myfile:
                     myfile.write("\n"+" ".join(map(str,game_list)))
                     number_games_bronze += 1
                     bisect.insort_left(games_history,game_Id)
@@ -220,7 +226,7 @@ while True:
                 
             if 4 <= ligue < 13: # Silver
                 
-                with open("silver.txt", "a") as myfile:
+                with open("Data/silver.txt", "a") as myfile:
                     myfile.write("\n"+" ".join(map(str,game_list)))
                     number_games_silver += 1
                     bisect.insort_left(games_history,game_Id)
@@ -228,7 +234,7 @@ while True:
                     
             if 13 <= ligue < 25: # Gold
                 
-                with open("gold.txt", "a") as myfile:
+                with open("Data/gold.txt", "a") as myfile:
                     myfile.write("\n"+" ".join(map(str,game_list)))
                     number_games_gold += 1
                     bisect.insort_left(games_history,game_Id)
@@ -236,7 +242,7 @@ while True:
                     
             if 25 <= ligue < 45: # Platinum
                 
-                with open("platinum.txt", "a") as myfile:
+                with open("Data/platinum.txt", "a") as myfile:
                     myfile.write("\n"+" ".join(map(str,game_list)))
                     number_games_platinum += 1
                     bisect.insort_left(games_history,game_Id)
@@ -244,7 +250,7 @@ while True:
                     
             if 45 <= ligue < 70: # Diamond
                 
-                with open("diamond.txt", "a") as myfile:
+                with open("Data/diamond.txt", "a") as myfile:
                     myfile.write("\n"+" ".join(map(str,game_list)))
                     number_games_diamond += 1
                     bisect.insort_left(games_history,game_Id)
@@ -252,7 +258,7 @@ while True:
                     
             if ligue >= 70: # Challenger
                 
-                with open("challenger.txt", "a") as myfile:
+                with open("Data/challenger.txt", "a") as myfile:
                     myfile.write("\n"+" ".join(map(str,game_list)))
                     number_games_challenger += 1
                     bisect.insort_left(games_history,game_Id)

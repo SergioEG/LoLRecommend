@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 """
 Created on Sun Sep 23 23:32:13 2018
 
@@ -6,17 +6,31 @@ Created on Sun Sep 23 23:32:13 2018
 """
 
 #################################################
-##       Sistema de recomendación final        ##
+##       Final Recommendation System           ##
 #################################################
+
+####### COMMENTS #######
+
+# 'stats.txt': where stats of all champions for a patch of LoL are included
+#              It must be properly downloaded for each patch
+
+# 'model_test.sav': is the predictor with which win probabilities will be obtained
+#                   Input data dimension is 180: 10 champs * 18 stats 
+
+# 'normaliz.sav': a Scaler (normalizer) to scale the data
+
+#########################
 
 import numpy as np
 import pickle
 import pandas as pd
 import random
+
 ###########################################################################
-# Importamos estadísticas de campeones y el modelo (+ normalizador)
+
+# Import champ stats and prediction models
 try:
-    with open('Datos/champs_and_stats_8_3_1.txt','r') as inf:
+    with open('Data/stats.txt','r') as inf:
         champs = eval(inf.read()) # champs is a Python dictionary
         champs_keys = list(champs.keys())
         n_total_champs = len(champs)
@@ -33,8 +47,9 @@ stats = {}
 for i in champs:
     stats[i] = [champs[i].get(x) for x in stats_selected]
 
-model = pickle.load(open('Modelos/model_test.sav', 'rb'))
-normalize = pickle.load(open('Modelos/normaliz.sav', 'rb'))
+model = pickle.load(open('Models/model_test.sav', 'rb'))
+normalize = pickle.load(open('Models/normaliz.sav', 'rb'))
+
 ###########################################################################
 
 def recom_9th(list_sel, list_poss):
@@ -81,7 +96,7 @@ def recom_10th(list_champs, list_poss):
         line = list(list_champs)
         line.insert(10,champs_keys[i])
         
-        row_stats = [stats[x] for x in line] # lista cuyos elementos son las estadísticas de cada campeón de la partida
+        row_stats = [stats[x] for x in line] # list whose elements are the stats of each champ of the game
         poss_games[i] = np.ravel(row_stats)
     
     matrix = normalize.transform(pd.DataFrame(data = poss_games))
@@ -147,12 +162,6 @@ def recom(list_sel, list_bans, position, n_samples, n_branch):
         return recom_9th(list_sel, list_poss)
     if (n_sel == 9):
         return recom_10th(list_sel, list_poss)
-        
-    # Blue or red team?
-    if (n_sel in [1,4,5,8]): # Recommendation is for team blue
-        team = 0
-    else:
-        team = 1 # Recomm is for team red
     
     # Max or Min? --> oper
     if (n_sel in [1,3,5,7]):
@@ -187,6 +196,9 @@ def recom(list_sel, list_bans, position, n_samples, n_branch):
             
     final_probs = np.array(final_probs)
     return array_best[final_probs.argmax()]
+
+
+# Example of running code
 
 list_sel = [54, 222, 99, 11, 98, 76, 82, 420]
 list_bans = [2, 3, 5, 42, 59, 114, 106, 127, 67, 21]
